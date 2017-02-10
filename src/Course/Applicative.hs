@@ -322,7 +322,7 @@ sequence = foldRight (\ x acc -> (:.) <$> x <*> acc) (pure Nil)
 
 -- | Replicate an effect a given number of times.
 --
--- >>>  
+-- >>> replicateA 4 (Id "hi")
 -- Id ["hi","hi","hi","hi"]
 --
 -- >>> replicateA 4 (Full "hi")
