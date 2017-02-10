@@ -68,7 +68,8 @@ infixr 1 =<<
   f (a -> b)
   -> f a
   -> f b
-mf <*> ma = (\a -> (\f -> pure $ f a) =<< mf) =<< ma 
+mf <*> ma = (\f -> (\a -> pure $ f a) =<< ma) =<< mf
+
 
 infixl 4 <*>
 
