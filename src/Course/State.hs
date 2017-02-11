@@ -198,5 +198,5 @@ isHappy num = contains 1 . firstRepeat $ produce sumOfSquareOfDigits num
 sumOfSquareOfDigits :: Integer -> Integer
 sumOfSquareOfDigits num = toInteger $ sum $ map (square . digitToInt) $ show' num
 
-square :: Int -> Int
+square :: (Num a) => a -> a
 square = join (*)
