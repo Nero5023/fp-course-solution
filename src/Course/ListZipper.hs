@@ -705,11 +705,12 @@ instance Traversable ListZipper where
   -- traverse :: (a -> f b) -> ListZipper a -> f (ListZipper b)
   -- traverse f lz = let list = toList lz
   --                     re   = traverse f list
-  traverse f lz = let list = toList lz
-                      flist = traverse f list
-                      idx   = index lz
-                  in (\xs -> let IsZ lz' = toListZipperN idx xs in lz') <$> flist
-
+  -- traverse f lz = let list = toList lz
+  --                     flist = traverse f list
+  --                     idx   = index lz
+  --                 in (\xs -> let IsZ lz' = toListZipperN idx xs in lz') <$> flist
+  traverse f (ListZipper l x r) =
+    (ListZipper ) <$> traverse f l <*> f x <*> traverse f r
 
 
 toListZipperN :: Int -> List a -> MaybeListZipper a
