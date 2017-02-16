@@ -25,6 +25,8 @@ import Course.List
 import Course.Functor
 import Course.Applicative
 import Course.Monad
+import Course.State
+import qualified Data.Set as S
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -187,7 +189,7 @@ data Digit =
   | Seven
   | Eight
   | Nine
-  deriving (Eq, Enum, Bounded)
+  deriving (Eq, Enum, Bounded, Show)
 
 showDigit ::
   Digit
@@ -218,7 +220,7 @@ data Digit3 =
   D1 Digit
   | D2 Digit Digit
   | D3 Digit Digit Digit
-  deriving Eq
+  deriving (Eq, Show)
 
 -- Possibly convert a character to a digit.
 fromChar ::
@@ -323,5 +325,103 @@ fromChar _ =
 dollars ::
   Chars
   -> Chars
-dollars =
-  error "todo: Course.Cheque#dollars"
+dollars xs = let (int, decimal) = splitByDot $ filterNum xs
+                 intStr = showDollorOrCents int
+                 decimalStr = showDollorOrCents decimal
+                 dollarStr = if intStr == "one " then "dollar and " else "dollars and "
+                 centStr = if decimalStr == "one " then "cent" else "cents"
+             in intStr ++ dollarStr ++ decimalStr ++ centStr
+
+
+-- Filter the input to the right type of number
+-- The output is in "xxxxx.xx" type
+filterNum :: Chars -> Chars
+filterNum xs =
+  eval ((filtering (\x -> State $ \(hasDot, numFromDot) -> 
+                              ((isDigit x || ((x == '.') && not hasDot)) && numFromDot < 2, 
+                                nextState x (hasDot, numFromDot))) xs) >>=
+    (\numStr -> State $ \(is, num) -> (fill numStr is num, (True, 2)))) (False, 0)
+  where nextState x (hasDot, numFromDot) =
+          let nextHasDot = 
+                (hasDot || (x == '.'))
+              nextNum =
+                if hasDot && isDigit x then numFromDot + 1 else numFromDot
+              in (nextHasDot, nextNum)
+        fill str hasDot numFromDot
+          | not hasDot = str ++ ".00"
+          | numFromDot < 2 = str ++ replicate (2 - numFromDot) '0'
+          | otherwise = str
+
+-- Split the number string to (int, decimal)
+splitByDot :: Chars -> (Chars, Chars)
+splitByDot ('.':.rs) = (Nil, rs)
+splitByDot (x:.xs)   = let (int, decimal) = splitByDot xs
+                        in (x:.int, decimal)
+splitByDot _         = error "Input must have '.'"
+
+
+
+-- Fill the length of string to 3 multiple and make it group every 3 char
+groupToEvery3 :: Chars -> List Chars
+groupToEvery3 str = 
+  case fillStrTo3 str of ('0':.'0':.z:.xs) -> (z:.Nil) :. groupToEvery3 xs
+                         ('0':.y:.z:.xs)   -> (y:.z:.Nil) :. groupToEvery3 xs
+                         (x:.y:.z:.xs)     -> (x:.y:.z:.Nil) :. groupToEvery3 xs
+                         Nil           -> Nil
+                         _             -> error "Unexcepted error"
+  where fillStrTo3 xs = replicate ((3 - length xs `mod` 3) `mod` 3) '0' ++ xs
+
+
+-- make the right num str to Digits
+toDigit3s :: Chars -> List Digit3
+toDigit3s str = map ch3ToDigit3 (groupToEvery3 str)
+  where ch3ToDigit3 xs = 
+           case sequence $ map fromChar xs of Full (x:.y:.z:.Nil) -> D3 x y z
+                                              Full (x:.y:.Nil) -> D2 x y
+                                              Full (x:.Nil) -> D1 x
+                                              Full _ -> error "Unexcepted error"
+                                              Empty -> error "Unexcepted error"
+
+
+-- show the lower case of digit
+showLowD :: Digit -> Chars
+showLowD digit = toLower <$> showDigit digit
+  
+-- connect the decade and unit
+(+|) :: Chars -> Digit -> Chars
+(+|) str Zero = str
+(+|) str digit = str ++ ('-' :. showLowD digit)
+
+-- Show the digit3
+showDigit3 :: Digit3 -> Chars
+showDigit3 (D1 a) = showLowD a 
+showDigit3 (D2 Zero b) = showLowD b
+showDigit3 (D2 One b) = 
+  case b of Zero -> "ten"
+            One -> "eleven"
+            Two -> "twelve"
+            Three -> "thirteen"
+            Four -> "fourteen"
+            Five -> "fifteen"
+            Six -> "sixteen"
+            Seven -> "seventeen"
+            Eight -> "eighteen"
+            Nine -> "nineteen"
+showDigit3 (D2 Two b) = "twenty" +| b
+showDigit3 (D2 Three b) = "thirty" +| b
+showDigit3 (D2 Four b) = "forty" +| b
+showDigit3 (D2 Five b) = "fifty" +| b
+showDigit3 (D2 Six b) = "sixty" +| b
+showDigit3 (D2 Seven b) = "seventy" +| b
+showDigit3 (D2 Eight b) = "eighty" +| b
+showDigit3 (D2 Nine b) = "ninety" +| b
+showDigit3 (D3 Zero Zero Zero) = ""
+showDigit3 (D3 Zero a b) = showDigit3 (D2 a b)
+showDigit3 (D3 a Zero Zero) = showLowD a ++ " hundred"
+showDigit3 (D3 a b c) = showLowD a ++ " hundred and " ++ showDigit3 (D2 b c)
+
+-- show the int or decim 
+showDollorOrCents :: Chars -> Chars
+showDollorOrCents Nil = "zero "
+showDollorOrCents xs = join $ reverse $ zipWith (\a b -> a ++ " " ++ b ++ if b=="" then "" else " ") (reverse $ map showDigit3 $ toDigit3s xs) illion
+
