@@ -94,6 +94,7 @@ toSpecialCharacter c =
 -- Result >def< "\babc"
 --
 -- >>> parse jsonString "\"\\u00abc\"def"
+-- Result >def< "\171c"
 --
 -- >>> parse jsonString "\"\\u00ffabc\"def"
 -- Result >def< "\255abc"
