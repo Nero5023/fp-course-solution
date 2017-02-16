@@ -362,15 +362,13 @@ splitByDot _         = error "Input must have '.'"
 
 
 -- Fill the length of string to 3 multiple and make it group every 3 char
-groupToEvery3 :: Chars -> List Chars
-groupToEvery3 str = 
-  case fillStrTo3 str of ('0':.'0':.z:.xs) -> (z:.Nil) :. groupToEvery3 xs
-                         ('0':.y:.z:.xs)   -> (y:.z:.Nil) :. groupToEvery3 xs
-                         (x:.y:.z:.xs)     -> (x:.y:.z:.Nil) :. groupToEvery3 xs
-                         Nil           -> Nil
-                         _             -> error "Unexcepted error"
-  where fillStrTo3 xs = replicate ((3 - length xs `mod` 3) `mod` 3) '0' ++ xs
 
+groupToEvery3 :: Chars -> List Chars
+groupToEvery3 str = reverse $ group3r (reverse str)
+  where group3r (x:.y:.z:.xs) = (z:.y:.x:.Nil) :. group3r xs
+        group3r (x:.y:.Nil)   = (y:.x:.Nil) :. Nil
+        group3r (x:.Nil)      = (x:.Nil) :. Nil
+        group3r Nil           = Nil
 
 -- make the right num str to Digits
 toDigit3s :: Chars -> List Digit3
@@ -423,5 +421,6 @@ showDigit3 (D3 a b c) = showLowD a ++ " hundred and " ++ showDigit3 (D2 b c)
 -- show the int or decim 
 showDollorOrCents :: Chars -> Chars
 showDollorOrCents Nil = "zero "
-showDollorOrCents xs = join $ reverse $ zipWith (\a b -> a ++ " " ++ b ++ if b=="" then "" else " ") (reverse $ map showDigit3 $ toDigit3s xs) illion
-
+showDollorOrCents xs = join $ reverse $ zipWith connect (reverse $ map showDigit3 $ toDigit3s xs) illion
+  where connect "" _ = "" :: Chars
+        connect num ill = num ++ " " ++ ill ++ if ill =="" then "" else " "
