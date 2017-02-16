@@ -43,6 +43,14 @@ untilM p a =
       pure r
     else
       untilM p a
+-- untilM p a =
+--   r <- a
+--   istrue <- p a
+--   if istrue then
+--     return r
+--   else
+--     untilM p r
+
 
 -- | Example program that uses IO to echo back characters that are entered by the user.
 echo ::
@@ -82,8 +90,15 @@ data Op =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 convertInteractive ::
   IO ()
-convertInteractive =
-  error "todo: Course.Interactive#convertInteractive"
+-- convertInteractive = do
+--   putStr "Enter a string: "
+--   str <- getLine
+--   let upperStr = map toUpper str
+--   putStrLn upperStr
+
+convertInteractive = 
+  putStr "Enter a string: " >-
+  getLine >>= (\str -> let upperStr = map toUpper str in putStrLn upperStr)
 
 -- |
 --
@@ -110,8 +125,21 @@ convertInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 reverseInteractive ::
   IO ()
-reverseInteractive =
-  error "todo: Course.Interactive#reverseInteractive"
+reverseInteractive = 
+  putStr "Enter a filename to input: " >-
+  getLine >>= (\path -> 
+  readFile path >>= (\content -> 
+    putStr "Enter a filename to output: ">-
+    getLine >>= (\outfile ->
+      writeFile outfile $ reverse content)))
+
+-- reverseInteractive = do
+--   putStr "Enter a filename to input: "
+--   path <- getLine
+--   content <- readFile path
+--   putStr "Enter a filename to output: "
+--   outfile <- getLine
+--   writeFile outfile $ reverse content
 
 -- |
 --
@@ -136,8 +164,26 @@ reverseInteractive =
 -- /Tip:/ @putStrLn :: String -> IO ()@ -- Prints a string and then a new line to standard output.
 encodeInteractive ::
   IO ()
-encodeInteractive =
-  error "todo: Course.Interactive#encodeInteractive"
+-- encodeInteractive = do
+--   putStr "Enter a URL to encode: "
+--   url <- getLine
+--   putStrLn $ url >>= encode
+--   where encode a =
+--           case a of ' ' -> "%20"
+--                     '\t' -> "%09"
+--                     '\"' -> "%22"
+--                     _ -> a:.Nil
+encodeInteractive = 
+  putStr "Enter a URL to encode: " >-
+  getLine >>= \url ->
+  putStrLn $ url >>= encode
+  where encode a =
+          case a of ' ' -> "%20"
+                    '\t' -> "%09"
+                    '\"' -> "%22"
+                    _ -> a:.Nil
+
+
 
 interactive ::
   IO ()
