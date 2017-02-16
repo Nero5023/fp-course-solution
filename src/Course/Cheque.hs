@@ -361,8 +361,7 @@ splitByDot _         = error "Input must have '.'"
 
 
 
--- Fill the length of string to 3 multiple and make it group every 3 char
-
+-- Make number str group every 3 char
 groupToEvery3 :: Chars -> List Chars
 groupToEvery3 str = reverse $ group3r (reverse str)
   where group3r (x:.y:.z:.xs) = (z:.y:.x:.Nil) :. group3r xs
@@ -370,7 +369,7 @@ groupToEvery3 str = reverse $ group3r (reverse str)
         group3r (x:.Nil)      = (x:.Nil) :. Nil
         group3r Nil           = Nil
 
--- make the right num str to Digits
+-- Make the right num str to Digits
 toDigit3s :: Chars -> List Digit3
 toDigit3s str = map ch3ToDigit3 (groupToEvery3 str)
   where ch3ToDigit3 xs = 
@@ -422,5 +421,5 @@ showDigit3 (D3 a b c) = showLowD a ++ " hundred and " ++ showDigit3 (D2 b c)
 showDollorOrCents :: Chars -> Chars
 showDollorOrCents Nil = "zero "
 showDollorOrCents xs = join $ reverse $ zipWith connect (reverse $ map showDigit3 $ toDigit3s xs) illion
-  where connect "" _ = "" :: Chars
+  where connect "" _ = "" :: Chars   -- connect the number and illion
         connect num ill = num ++ " " ++ ill ++ if ill =="" then "" else " "
