@@ -14,8 +14,13 @@ fastAnagrams ::
   Chars
   -> Filename
   -> IO (List Chars)
-fastAnagrams =
-  error "todo: Course.FastAnagrams#fastAnagrams"
+fastAnagrams name path =
+     mapFunc <$> readFile path
+     where mapFunc content = 
+            filter (`S.member` (S.fromList . hlist $ lines content)) (permutations name)
+-- fastAnagrams name path =
+--     (intersectBy (==) (permutations name) . lines) <$> readFile path
+  
 
 newtype NoCaseString =
   NoCaseString {
