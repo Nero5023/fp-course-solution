@@ -1,0 +1,4 @@
+:set -isrc
+:l src/TicTacToe.hs
+:set prompt ">> "
+:set -Wall
