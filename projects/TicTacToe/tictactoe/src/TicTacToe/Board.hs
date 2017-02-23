@@ -96,7 +96,6 @@ whoWon bs = join $ findFirst (/= Nothing) [fRow, sRow, tRow, fCol, sCol, tCol, x
           yy   = sequenceA (zipWith (!!) board [2,1,0]) >>= compress
 
 
-
 isDraw :: State Board a -> Bool
 isDraw bs = isJust $ sequenceA $ map sequenceA board
     where board = chessBoard bs
